@@ -9,6 +9,7 @@ parser code
     public ArrayList<String> texto = new ArrayList<>();
     public int contador = 0;
     public SymbolTable symbolTable = new SymbolTable();  // Instanciar la tabla de símbolos
+    public Integer returnValue = 0;
 
     @Override
     public void syntax_error(Symbol s){
@@ -48,6 +49,7 @@ PROGRAM ::=
             Nodo tmp = new Nodo(new Info("programa",null,null,null),parser.contador);
 			tmp.addHijoIzq(a);
 			parser.padre = tmp;
+            
 			RESULT = tmp;
         :}
     |   VOID MAIN LPAREN RPAREN LBRACE BLOCK:a RBRACE{:
@@ -56,6 +58,7 @@ PROGRAM ::=
             Nodo tmp = new Nodo(new Info("programa",null,null,null),parser.contador);
 			tmp.addHijoIzq(a);
 			parser.padre = tmp;
+            parser.returnValue = null;
 			RESULT = tmp;
         :}
 ;
@@ -106,7 +109,7 @@ DECL ::=
                 // Agregar la variable a la tabla de símbolos
                 System.out.println("info.nombre: "+v.info.nombre);
                 parser.symbolTable.addSymbol(varName, parser.contador, null, t.info.tipo);
-                Nodo tmp = new Nodo(new Info("declaracion",null,null,null),parser.contador);
+                Nodo tmp = new Nodo(new Info("declaracion",null,0,null),parser.contador); //test, todos los valores seran inicializados en 0
                 tmp.addHijoIzq(t);
                 tmp.addHijoDer(v);
                 RESULT = tmp;
@@ -132,6 +135,10 @@ STATEMENT ::=
                 Nodo tmp = new Nodo(new Info("\"=\"",null,null,null),parser.contador);
                 tmp.addHijoIzq(v);
                 tmp.addHijoDer(e);
+
+                //codigo de interprete
+                parser.symbolTable.changeSymbolValue(v.info.nombre,e.info.value);
+
                 RESULT = tmp;
             }
 
@@ -141,6 +148,7 @@ STATEMENT ::=
             parser.texto.add("graphid:"+parser.contador+" # "+"RETURN EXP:e SEMICOLON");
             Nodo tmp = new Nodo(new Info("return",Simbolo.RETURN,null,null),parser.contador);
 			tmp.addHijoIzq(e);
+            parser.returnValue = e.info.value;
 			RESULT = tmp;
         :}
     |   RETURN SEMICOLON {:
@@ -159,9 +167,9 @@ EXP ::=
             if (!a.info.tipo.equals("entero") || !b.info.tipo.equals("entero")) {
                 throw new RuntimeException("Error: Tipos incompatibles en suma. Ambos deben ser enteros.");
             }else{
-
+                int resultadoSuma=a.info.value + b.info.value;
                 parser.texto.add("graphid:"+parser.contador+" # "+"exp + exp");
-                Nodo tmp = new Nodo(new Info("\"+\"",Simbolo.PLUS,null,"entero"),parser.contador);
+                Nodo tmp = new Nodo(new Info("\"+\"",Simbolo.PLUS,resultadoSuma,"entero"),parser.contador);
                 tmp.addHijoIzq(a);
                 tmp.addHijoDer(b);
                 RESULT = tmp;
@@ -174,8 +182,9 @@ EXP ::=
             if (!a.info.tipo.equals("entero") || !b.info.tipo.equals("entero")) {
                 throw new RuntimeException("Error: Tipos incompatibles en suma. Ambos deben ser enteros.");
             }else{
+                int resultadoProducto=a.info.value*b.info.value;
                 parser.texto.add("graphid:"+parser.contador+" # "+"exp * exp");
-                Nodo tmp = new Nodo(new Info("\"*\"",Simbolo.STAR,null,"entero"),parser.contador);
+                Nodo tmp = new Nodo(new Info("\"*\"",Simbolo.STAR,resultadoProducto,"entero"),parser.contador);
                 tmp.addHijoIzq(a);
                 tmp.addHijoDer(b);
                 RESULT = tmp;
@@ -184,7 +193,7 @@ EXP ::=
     |   LPAREN EXP:e RPAREN {:
             parser.contador++;
             parser.texto.add("graphid:"+parser.contador+" # "+"(expresion)");
-			Nodo tmp = new Nodo(new Info("expresion",null,null,null),parser.contador);
+			Nodo tmp = new Nodo(new Info("expresion",null,e.info.value,null),parser.contador);
 			tmp.addHijoIzq(e);
             RESULT = tmp;
         :}
@@ -199,10 +208,8 @@ EXP ::=
             if (varInfo == null) {
                 System.out.println("Error: Variable '" + varName + "' no ha sido declarada.");
             }else{
-
-                Nodo tmp = new Nodo(new Info(id.toString(),Simbolo.ID,null,"variable"),parser.contador);
+                Nodo tmp = new Nodo(varInfo,parser.contador);
                 RESULT = tmp;
-
             }
         :}
     |   NUMBER:n {:
@@ -249,13 +256,6 @@ VAR ::=
             //String varName = id.toString();
             //Info varInfo = parser.symbolTable.lookup(varName);
             
-            /*if (varInfo!=null) {
-                System.out.println("ERROR:Variable '" + varName + "' ya ha sido declarada.")
-                RESULT = null;
-            } else {
-                Nodo tmp = new Nodo(new Info(id.toString(),Simbolo.ID,null,"variable"),parser.contador);
-                RESULT = tmp;
-            }*/
             Nodo tmp = new Nodo(new Info(id.toString(),Simbolo.ID,null,"variable"),parser.contador);
             RESULT = tmp;
 

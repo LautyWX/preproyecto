@@ -122,6 +122,7 @@ public class Ventana extends javax.swing.JFrame {
             }
 
             jText2.setText(sb.toString());
+            System.out.println("el programa retorna: "+parser.returnValue);
 
         } catch (Exception exception) {
             System.out.println(exception.getMessage());
