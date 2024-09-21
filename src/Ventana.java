@@ -45,7 +45,7 @@ public class Ventana extends javax.swing.JFrame {
 
         jText1.setColumns(20);
         jText1.setRows(5);
-        jText1.setText("int main(){int x;int y;x = 10 + 15;}");
+        jText1.setText("int main(){int x;int y;y = 25;x = 50+y;return x;}");
         jScrollPane2.setViewportView(jText1);
 
         jButton2.setText("Imagen");
