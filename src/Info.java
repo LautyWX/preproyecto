@@ -1,4 +1,4 @@
-public class Info {
+public class Info { 
     public Integer etiqueta; // numero de etiqueta
     public String nombre; // x y
     public Integer value; // 15 0 1

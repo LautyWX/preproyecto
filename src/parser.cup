@@ -8,6 +8,10 @@ parser code
     public Nodo padre; //o nodo raiz
     public ArrayList<String> texto = new ArrayList<>();
     public int contador = 0;
+    public SymbolTable symbolTable = new SymbolTable();  // Instanciar la tabla de símbolos
+    public Integer returnValue = 0;
+    public ArrayList<String> codeOutput = new ArrayList<>();
+    public Integer tmpNameCounter = 0;
 
     @Override
     public void syntax_error(Symbol s){
@@ -44,37 +48,51 @@ PROGRAM ::=
         INT MAIN LPAREN RPAREN LBRACE BLOCK:a RBRACE {:
             parser.contador++;
             parser.texto.add("graphid:"+parser.contador+" # "+"int main :");
-            Nodo tmp = new Nodo(new Info("programa",null,null,null),parser.contador);
+            Nodo tmp = new Nodo(new Info("programa",-1,null,null),parser.contador);
 			tmp.addHijoIzq(a);
 			parser.padre = tmp;
+            
 			RESULT = tmp;
         :}
     |   VOID MAIN LPAREN RPAREN LBRACE BLOCK:a RBRACE{:
             parser.contador++;
             parser.texto.add("graphid:"+parser.contador+" # "+"void main :");
-            Nodo tmp = new Nodo(new Info("programa",null,null,null),parser.contador);
+            Nodo tmp = new Nodo(new Info("programa",-1,null,null),parser.contador);
 			tmp.addHijoIzq(a);
 			parser.padre = tmp;
+            parser.returnValue = null;
 			RESULT = tmp;
         :}
 ;
 
 BLOCK ::=
         DECL:d BLOCK:b {:
+            // Entrar a un nuevo alcance
+            parser.symbolTable.enterScope();
+
             parser.contador++;
             parser.texto.add("graphid:"+parser.contador+" # "+"declaracion y bloque");
-            Nodo tmp = new Nodo(new Info("bloque",null,null,null),parser.contador);
+            Nodo tmp = new Nodo(new Info("bloque",-1,null,null),parser.contador);
 			tmp.addHijoIzq(d);
 			tmp.addHijoDer(b);
+
 			RESULT = tmp;
+            // Salir del alcance al terminar el bloque
+            parser.symbolTable.exitScope();
         :}
     |   STATEMENT:s BLOCK:b {:
+            // Entrar a un nuevo alcance
+            parser.symbolTable.enterScope();
+            
             parser.contador++;
             parser.texto.add("graphid:"+parser.contador+" # "+"sentencia y bloque");
-            Nodo tmp = new Nodo(new Info("bloque",null,null,null),parser.contador);
+            Nodo tmp = new Nodo(new Info("bloque",-1,null,null),parser.contador);
 			tmp.addHijoIzq(s);
 			tmp.addHijoDer(b);
 			RESULT = tmp;
+
+            // Salir del alcance al terminar el bloque
+            parser.symbolTable.exitScope();
         :}
     |   /* epsilon */ {:
 			RESULT = null;
@@ -85,33 +103,68 @@ DECL ::=
         TYPE:t VAR:v SEMICOLON {:
             parser.contador++;
             parser.texto.add("graphid:"+parser.contador+" # "+"DECLARACION: "+ t.info.tipo + "variable;");
-			Nodo tmp = new Nodo(new Info("declaracion",null,null,null),parser.contador);
-			tmp.addHijoIzq(t);
-			tmp.addHijoDer(v);
-            RESULT = tmp;
+			
+            // Verificar si la variable ya existe en el ámbito actual
+            String varName = v.info.nombre;
+            if (parser.symbolTable.lookup(varName) != null) {
+                System.out.println("Error: Variable '" + varName + "' ya declarada.");
+            } else {
+                // Agregar la variable a la tabla de símbolos
+                System.out.println("info.nombre: "+v.info.nombre);
+                parser.symbolTable.addSymbol(varName, parser.contador, null, t.info.tipo);
+                Nodo tmp = new Nodo(new Info("declaracion",-1,0,null),parser.contador); //test, todos los valores seran inicializados en 0
+                tmp.addHijoIzq(t);
+                tmp.addHijoDer(v);
+                RESULT = tmp;
+            }
+
         :}
 ;
 
 STATEMENT ::=
         VAR:v EQUAL EXP:e SEMICOLON {:
             parser.contador++;
-            parser.texto.add("graphid:"+parser.contador+" # variable = expresion");
-            Nodo tmp = new Nodo(new Info("\"=\"",null,null,null),parser.contador);
-			tmp.addHijoIzq(v);
-			tmp.addHijoDer(e);
-			RESULT = tmp;
+            parser.tmpNameCounter++;
+            //  Verificar que el tipo de la variable y la expresión sean compatibles
+            Info varInfo = parser.symbolTable.lookup(v.info.nombre);
+            if (varInfo == null) {
+                throw new RuntimeException("Error: Variable '" + v.info.nombre + "' no está declarada.");
+            }
+            if (!varInfo.tipo.equals(e.info.tipo)) {
+                throw new RuntimeException("Error: Tipos incompatibles en asignación. Se esperaba " + varInfo.tipo + " pero se obtuvo " + e.info.tipo);
+            }else{
+
+                parser.texto.add("graphid:"+parser.contador+" # variable = expresion");
+                Nodo tmp = new Nodo(new Info("\"=\"",Simbolo.EQUAL,null,null),parser.contador);
+                tmp.addHijoIzq(v);
+                tmp.addHijoDer(e);
+
+                //codigo de interprete
+                parser.symbolTable.changeSymbolValue(v.info.nombre,e.info.value);
+
+                //segmento cod3dir
+                parser.codeOutput.add(Cod3dir.genLine("ASSGN",e.info,null,v.info));
+                RESULT = tmp;
+            }
+
         :}
     |   RETURN EXP:e SEMICOLON {:
             parser.contador++;
+            parser.tmpNameCounter++;
             parser.texto.add("graphid:"+parser.contador+" # "+"RETURN EXP:e SEMICOLON");
-            Nodo tmp = new Nodo(new Info("return",Simbolo.RETURN,null,null),parser.contador);
+            Nodo tmp = new Nodo(new Info("tmp"+parser.tmpNameCounter.toString(),Simbolo.RETURN,null,null),parser.contador);
 			tmp.addHijoIzq(e);
+            parser.returnValue = e.info.value;
+            // segmento cod3dir
+            parser.codeOutput.add(Cod3dir.genLine("RET",null,null,e.info));
+            //
 			RESULT = tmp;
         :}
     |   RETURN SEMICOLON {:
             parser.contador++;
             parser.texto.add("graphid:"+parser.contador+" # "+"return;");
             Nodo tmp = new Nodo(new Info("return",Simbolo.RETURN,null,null),parser.contador);
+            
 			RESULT = tmp;
         :}
 ;
@@ -119,32 +172,65 @@ STATEMENT ::=
 EXP ::=
         EXP:a PLUS EXP:b {:
             parser.contador++;
-            parser.texto.add("graphid:"+parser.contador+" # "+"exp + exp");
-            Nodo tmp = new Nodo(new Info("\"+\"",Simbolo.PLUS,null,null),parser.contador);
-			tmp.addHijoIzq(a);
-			tmp.addHijoDer(b);
-            RESULT = tmp;
+            parser.tmpNameCounter++;
+             // Verificar que ambos operandos son del mismo tipo y compatibles con suma
+            if (!a.info.tipo.equals("entero") || !b.info.tipo.equals("entero")) {
+                throw new RuntimeException("Error: Tipos incompatibles en suma. Ambos deben ser enteros.");
+            }else{
+                int resultadoSuma=a.info.value + b.info.value;
+                parser.texto.add("graphid:"+parser.contador+" # "+"exp + exp");
+                Info tmpInfo = new Info("tmp"+parser.tmpNameCounter.toString(),Simbolo.PLUS,resultadoSuma,"entero");
+                Nodo tmp = new Nodo(tmpInfo,parser.contador);
+                tmp.addHijoIzq(a);
+                tmp.addHijoDer(b);
+                RESULT = tmp;
+
+                //segmento cod3dir...
+                parser.codeOutput.add(Cod3dir.genLine("SUM",a.info,b.info,tmp.info));
+                //
+            }
         :}
     |   EXP:a STAR EXP:b {:
             parser.contador++;
-            parser.texto.add("graphid:"+parser.contador+" # "+"exp * exp");
-            Nodo tmp = new Nodo(new Info("\"*\"",Simbolo.STAR,null,null),parser.contador);
-			tmp.addHijoIzq(a);
-			tmp.addHijoDer(b);
-            RESULT = tmp;
+            parser.tmpNameCounter++;
+            // Verificar que ambos operandos son del mismo tipo y compatibles con suma
+            if (!a.info.tipo.equals("entero") || !b.info.tipo.equals("entero")) {
+                throw new RuntimeException("Error: Tipos incompatibles en suma. Ambos deben ser enteros.");
+            }else{
+                int resultadoProducto=a.info.value*b.info.value;
+                parser.texto.add("graphid:"+parser.contador+" # "+"exp * exp");
+                Info tmpInfo = new Info("tmp"+parser.tmpNameCounter.toString(),Simbolo.STAR,resultadoProducto,"entero");
+                Nodo tmp = new Nodo(tmpInfo,parser.contador);
+                tmp.addHijoIzq(a);
+                tmp.addHijoDer(b);
+                RESULT = tmp;
+
+                //segmento cod3dir...
+                parser.codeOutput.add(Cod3dir.genLine("MUL",a.info,b.info,tmp.info));
+                //
+            }
         :}
     |   LPAREN EXP:e RPAREN {:
-            parser.contador++;
+            /*parser.contador++;
             parser.texto.add("graphid:"+parser.contador+" # "+"(expresion)");
-			Nodo tmp = new Nodo(new Info("expresion",null,null,null),parser.contador);
-			tmp.addHijoIzq(e);
-            RESULT = tmp;
+			Nodo tmp = new Nodo(new Info("expresion",null,e.info.value,null),parser.contador);
+			tmp.addHijoIzq(e);*/
+            RESULT = e;
         :}
     |   ID:id {:
             parser.contador++;
             parser.texto.add("graphid:"+parser.contador+" # "+id.toString());
-            Nodo tmp = new Nodo(new Info(id.toString(),Simbolo.ID,null,"variable"),parser.contador);
-            RESULT = tmp;
+
+
+            // Buscar la variable en la tabla de símbolos
+            String varName = id.toString();
+            Info varInfo = parser.symbolTable.lookup(varName);
+            if (varInfo == null) {
+                System.out.println("Error: Variable '" + varName + "' no ha sido declarada.");
+            }else{
+                Nodo tmp = new Nodo(varInfo,parser.contador);
+                RESULT = tmp;
+            }
         :}
     |   NUMBER:n {:
             parser.contador++;
@@ -185,7 +271,13 @@ VAR ::=
         ID:id {:
             parser.contador++;
             parser.texto.add("graphid:"+parser.contador+" # "+"variable:"+id.toString());
+            
+            // Buscar la variable en la tabla de símbolos
+            //String varName = id.toString();
+            //Info varInfo = parser.symbolTable.lookup(varName);
+            
             Nodo tmp = new Nodo(new Info(id.toString(),Simbolo.ID,null,"variable"),parser.contador);
             RESULT = tmp;
+
         :}
 ;
