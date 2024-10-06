@@ -5,7 +5,7 @@
 public class App {
     public static void main(String[] args) throws Exception {
         Ventana ventana = new Ventana();
-        ventana.setVisible(true);
+        ventana.setVisible(true); 
 
         /*if (args.length > 0) {
             String nomb reArchivo = args[0];

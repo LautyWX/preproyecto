@@ -37,4 +37,14 @@ class SymbolTable {
         }
         return null; // Si no se encuentra en ningún scope
     }
+
+    public void changeSymbolValue(String name,int value){
+        Map<String, Info> currentScope = scopes.peek();
+        Info newInfo = currentScope.get(name);
+        newInfo.value = value;
+        currentScope.replace(name, newInfo);
+    }
+
+    //codigo para el interprete
+
 }
