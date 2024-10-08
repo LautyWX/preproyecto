@@ -1,5 +1,5 @@
 public class Cod3dir {
-    String opType;
+    String opType;  //Ass
     Info operando1;
     Info operando2;
     Info result;
@@ -23,7 +23,7 @@ public class Cod3dir {
             outputString = (opType +" "+c1+" "+c2+" "+r);
         } else if(opType == "ASSGN") {
             c1 = operando1.nombre;
-            outputString = (opType +" "+c1+" # "+r);
+            outputString = (opType +" "+c1+" # "+r); //MOV
         } else if(opType == "RET") {
             outputString = (opType +" # # "+r);
         } else {

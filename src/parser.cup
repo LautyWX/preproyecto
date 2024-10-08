@@ -13,6 +13,7 @@ parser code
     public ArrayList<String> codeOutput = new ArrayList<>();
     public Integer offSetCounter = -16;
     public Integer tmpNameCounter = 0;
+    public ArrayList<Cod3dir> cod3dirList = new ArrayList<>();
 
     @Override
     public void syntax_error(Symbol s){
@@ -145,6 +146,7 @@ STATEMENT ::=
 
                 //segmento cod3dir
                 parser.codeOutput.add(Cod3dir.genLine("ASSGN",e.info,null,v.info));
+                parser.cod3dirList.add(new Cod3dir("ASSGN",e.info,null,v.info));
                 RESULT = tmp;
             }
 
@@ -158,6 +160,7 @@ STATEMENT ::=
             parser.returnValue = e.info.value;
             // segmento cod3dir
             parser.codeOutput.add(Cod3dir.genLine("RET",null,null,e.info));
+            parser.cod3dirList.add(new Cod3dir("RET",null,null,e.info));
             //
 			RESULT = tmp;
         :}
@@ -188,6 +191,7 @@ EXP ::=
 
                 //segmento cod3dir...
                 parser.codeOutput.add(Cod3dir.genLine("SUM",a.info,b.info,tmp.info));
+                parser.cod3dirList.add(new Cod3dir("SUM",a.info,b.info,tmp.info));
                 //
             }
         :}
@@ -208,6 +212,7 @@ EXP ::=
 
                 //segmento cod3dir...
                 parser.codeOutput.add(Cod3dir.genLine("MUL",a.info,b.info,tmp.info));
+                parser.cod3dirList.add(new Cod3dir("SUM",a.info,b.info,tmp.info));
                 //
             }
         :}
