@@ -19,12 +19,12 @@ class SymbolTable {
         scopes.pop();
     }
 
-    public void addSymbol(String name, Integer etiqueta, Integer value, String type) {
+    public void addSymbol(String name, Integer etiqueta, Integer value, String type, Integer Offset) {
         Map<String, Info> currentScope = scopes.peek();
         if (currentScope.containsKey(name)) {
             System.out.println("Error: La variable '" + name + "' ya ha sido declarada en este alcance.");
         } else {
-            currentScope.put(name, new Info(name, etiqueta, value, type));
+            currentScope.put(name, new Info(name, etiqueta, value, type, Offset));
         }
     }
 

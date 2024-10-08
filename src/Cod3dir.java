@@ -1,4 +1,15 @@
 public class Cod3dir {
+    String opType;
+    Info operando1;
+    Info operando2;
+    Info result;
+
+    public Cod3dir(String opType, Info operando1, Info operando2, Info result){
+        this.opType = opType;
+        this.operando1 = operando1;
+        this.operando2 = operando2;
+        this.result = result;
+    }
 
     public static String genLine(String opType, Info operando1, Info operando2, Info result){
         String c1,c2,r;

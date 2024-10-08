@@ -11,6 +11,7 @@ parser code
     public SymbolTable symbolTable = new SymbolTable();  // Instanciar la tabla de símbolos
     public Integer returnValue = 0;
     public ArrayList<String> codeOutput = new ArrayList<>();
+    public Integer offSetCounter = -16;
     public Integer tmpNameCounter = 0;
 
     @Override
@@ -111,7 +112,7 @@ DECL ::=
             } else {
                 // Agregar la variable a la tabla de símbolos
                 System.out.println("info.nombre: "+v.info.nombre);
-                parser.symbolTable.addSymbol(varName, parser.contador, null, t.info.tipo);
+                parser.symbolTable.addSymbol(varName, parser.contador, null, t.info.tipo, v.info.offSet);
                 Nodo tmp = new Nodo(new Info("declaracion",-1,0,null),parser.contador); //test, todos los valores seran inicializados en 0
                 tmp.addHijoIzq(t);
                 tmp.addHijoDer(v);
@@ -276,7 +277,8 @@ VAR ::=
             //String varName = id.toString();
             //Info varInfo = parser.symbolTable.lookup(varName);
             
-            Nodo tmp = new Nodo(new Info(id.toString(),Simbolo.ID,null,"variable"),parser.contador);
+            Nodo tmp = new Nodo(new Info(id.toString(),Simbolo.ID,null,"variable",parser.offSetCounter),parser.contador);
+            parser.offSetCounter = parser.offSetCounter - 16;
             RESULT = tmp;
 
         :}
