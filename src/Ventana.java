@@ -120,11 +120,10 @@ public class Ventana extends javax.swing.JFrame {
             for (String str : parser.codeOutput) {
                 sb.append(str).append("\n");
             }
-
+            AssemblyGenerator.generateAssembly(parser.cod3dirList);
             jText2.setText(sb.toString());
 
-            
-            System.out.println("el programa retorna: "+parser.returnValue);
+            System.out.println("el programa retorna: " + parser.returnValue);
 
         } catch (Exception exception) {
             System.out.println(exception.getMessage());
