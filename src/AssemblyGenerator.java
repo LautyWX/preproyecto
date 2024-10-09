@@ -79,6 +79,6 @@ public class AssemblyGenerator {
 
     // Función que verifica si un operando es constante o no
     public static boolean isConstant(Info operando) {
-        return operando.offSet == null;
+        return operando.etiqueta == 10;
     }
 }
