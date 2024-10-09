@@ -56,6 +56,7 @@ public class AssemblyGenerator {
                         break;
 
                     case "RET":
+                        // Epilogue de la función
                         writer.write("movq " + c3d.operando1.offSet + "(%rbp), %rax\n"); // Mueve el resultado a rax
                         writer.write("popq %rbp\n"); // Restaura el base pointer
                         writer.write("ret\n"); // Retorna al llamador
@@ -67,11 +68,6 @@ public class AssemblyGenerator {
                         break;
                 }
             }
-
-            // Epilogue de la función
-            writer.write("popq %rbp\n");
-            writer.write("ret\n");
-
         } catch (IOException e) {
             System.err.println("Error writing to file: " + e.getMessage());
         }
