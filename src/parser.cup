@@ -212,7 +212,7 @@ EXP ::=
 
                 //segmento cod3dir...
                 parser.codeOutput.add(Cod3dir.genLine("MUL",a.info,b.info,tmp.info));
-                parser.cod3dirList.add(new Cod3dir("SUM",a.info,b.info,tmp.info));
+                parser.cod3dirList.add(new Cod3dir("MUL",a.info,b.info,tmp.info));
                 //
             }
         :}
