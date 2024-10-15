@@ -18,8 +18,5 @@ public class App {
         } else {
             System.out.println("Por favor, proporciona el nombre del archivo como argumento.");
         }*/
-
-
-
         
     }}

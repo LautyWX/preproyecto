@@ -8,11 +8,13 @@ public class AssemblyGenerator {
     public static void generateAssembly(List<Cod3dir> cod3dirList) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("assembly.txt"))) {
             // Prologue de la función
+            writer.write("main:\n");
             writer.write("pushq %rbp\n");
             writer.write("movq %rsp, %rbp\n");
 
             // Cuerpo de las instrucciones
             for (Cod3dir c3d : cod3dirList) {
+                
                 switch (c3d.opType) {
                     case "SUM":
                         if (isConstant(c3d.operando1)) {
@@ -57,7 +59,7 @@ public class AssemblyGenerator {
 
                     case "RET":
                         // Epilogue de la función
-                        writer.write("movq " + c3d.operando1.offSet + "(%rbp), %rax\n"); // Mueve el resultado a rax
+                        writer.write("movq " + c3d.result.offSet + "(%rbp), %rax\n"); // Mueve el resultado a rax
                         writer.write("popq %rbp\n"); // Restaura el base pointer
                         writer.write("ret\n"); // Retorna al llamador
                         break;

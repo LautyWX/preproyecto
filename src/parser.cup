@@ -183,7 +183,8 @@ EXP ::=
             }else{
                 int resultadoSuma=a.info.value + b.info.value;
                 parser.texto.add("graphid:"+parser.contador+" # "+"exp + exp");
-                Info tmpInfo = new Info("tmp"+parser.tmpNameCounter.toString(),Simbolo.PLUS,resultadoSuma,"entero");
+                Info tmpInfo = new Info("tmp"+parser.tmpNameCounter.toString(),Simbolo.PLUS,resultadoSuma,"entero",parser.offSetCounter);
+                parser.offSetCounter = parser.offSetCounter - 16;
                 Nodo tmp = new Nodo(tmpInfo,parser.contador);
                 tmp.addHijoIzq(a);
                 tmp.addHijoDer(b);
@@ -204,7 +205,8 @@ EXP ::=
             }else{
                 int resultadoProducto=a.info.value*b.info.value;
                 parser.texto.add("graphid:"+parser.contador+" # "+"exp * exp");
-                Info tmpInfo = new Info("tmp"+parser.tmpNameCounter.toString(),Simbolo.STAR,resultadoProducto,"entero");
+                Info tmpInfo = new Info("tmp"+parser.tmpNameCounter.toString(),Simbolo.STAR,resultadoProducto,"entero",parser.offSetCounter);
+                parser.offSetCounter = parser.offSetCounter - 16;
                 Nodo tmp = new Nodo(tmpInfo,parser.contador);
                 tmp.addHijoIzq(a);
                 tmp.addHijoDer(b);
