@@ -14,7 +14,7 @@ public class AssemblyGenerator {
 
             // Cuerpo de las instrucciones
             for (Cod3dir c3d : cod3dirList) {
-                
+
                 switch (c3d.opType) {
                     case "SUM":
                         if (isConstant(c3d.operando1)) {
@@ -62,6 +62,47 @@ public class AssemblyGenerator {
                         writer.write("movq " + c3d.result.offSet + "(%rbp), %rax\n"); // Mueve el resultado a rax
                         writer.write("popq %rbp\n"); // Restaura el base pointer
                         writer.write("ret\n"); // Retorna al llamador
+                        break;
+
+                    case "GREATER":
+                        // Comparamos los dos operandos
+                        if (isConstant(c3d.operando1)) {
+                            writer.write("movl $" + c3d.operando1.value + ", %eax\n");
+                        } else {
+                            writer.write("movl " + c3d.operando1.offSet + "(%rbp), %eax\n");
+                        }
+
+                        if (isConstant(c3d.operando2)) {
+                            writer.write("cmpl $" + c3d.operando2.value + ", %eax\n");
+                        } else {
+                            writer.write("cmpl " + c3d.operando2.offSet + "(%rbp), %eax\n");
+                        }
+
+                        // Resultado del GREATER
+                        writer.write("setg %al\n"); // Si es mayor, se coloca 1 en %al
+                        writer.write("movzbl %al, %eax\n"); // Expande el valor de %al a %eax (para asegurarse que todo
+                                                            // %eax tiene el valor correcto)
+                        writer.write("movl %eax, " + c3d.result.offSet + "(%rbp)\n"); // Guarda el resultado
+                        break;
+
+                    case "LESS":
+                        // Comparamos los dos operandos
+                        if (isConstant(c3d.operando1)) {
+                            writer.write("movl $" + c3d.operando1.value + ", %eax\n");
+                        } else {
+                            writer.write("movl " + c3d.operando1.offSet + "(%rbp), %eax\n");
+                        }
+
+                        if (isConstant(c3d.operando2)) {
+                            writer.write("cmpl $" + c3d.operando2.value + ", %eax\n");
+                        } else {
+                            writer.write("cmpl " + c3d.operando2.offSet + "(%rbp), %eax\n");
+                        }
+
+                        // Resultado del LESS
+                        writer.write("setl %al\n"); // Si es menor, se coloca 1 en %al
+                        writer.write("movzbl %al, %eax\n"); // Expande el valor de %al a %eax
+                        writer.write("movl %eax, " + c3d.result.offSet + "(%rbp)\n"); // Guarda el resultado
                         break;
 
                     // Otros casos como "/" y más operaciones
