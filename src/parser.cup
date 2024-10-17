@@ -30,6 +30,8 @@ parser code
 terminal INT, BOOL, VOID, MAIN, RETURN, TRUE, FALSE;
 terminal ID, NUMBER;
 terminal PLUS, STAR, EQUAL, LPAREN, RPAREN, LBRACE, RBRACE, SEMICOLON;
+terminal IF, ELSE, WHILE;
+terminal LESS, GREATER;
 
 // Define los no-terminales
 non terminal Nodo PROGRAM; //Program
@@ -170,6 +172,31 @@ STATEMENT ::=
             Nodo tmp = new Nodo(new Info("return",Simbolo.RETURN,null,null),parser.contador);
             
 			RESULT = tmp;
+        :}
+    |   IF LPAREN EXP:e RPAREN LBRACE BLOCK:b RBRACE ELSE LBRACE BLOCK:b2 RBRACE {:
+        parser.contador++;
+        parser.texto.add("graphid:"+parser.contador+" # "+"if(exp) {block} else {block}");
+        Nodo tmp = new Nodo(new Info("if-else",-1,null,null),parser.contador);
+        tmp.addHijoIzq(e);
+        tmp.addHijoIzq(b);  // Bloque del if
+        tmp.addHijoDer(b2); // Bloque del else
+        RESULT = tmp;
+        :}
+    | IF LPAREN EXP:e RPAREN LBRACE BLOCK:b RBRACE {:
+        parser.contador++;
+        parser.texto.add("graphid:"+parser.contador+" # "+"if(exp) {block}");
+        Nodo tmp = new Nodo(new Info("if",-1,null,null),parser.contador);
+        tmp.addHijoIzq(e);
+        tmp.addHijoDer(b);  // Bloque del if
+        RESULT = tmp;
+        :}
+    |   WHILE LPAREN EXP:e RPAREN LBRACE BLOCK:b RBRACE {:
+        parser.contador++;
+        parser.texto.add("graphid:"+parser.contador+" # "+"while(exp) {block}");
+        Nodo tmp = new Nodo(new Info("while",-1,null,null),parser.contador);
+        tmp.addHijoIzq(e);
+        tmp.addHijoDer(b);  // Bloque del while
+        RESULT = tmp;
         :}
 ;
 
