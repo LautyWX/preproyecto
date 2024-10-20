@@ -8,7 +8,7 @@ movq -64(%rbp), %rax
 movq %rax, -48(%rbp)
 movl -16(%rbp), %eax
 cmpl $5, %eax
-jne.L1
+jg.L1
 movl $30, -80(%rbp)
 jmp.L2
 .L1:

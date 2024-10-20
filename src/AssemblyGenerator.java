@@ -64,7 +64,7 @@ public class AssemblyGenerator {
                         writer.write("ret\n"); // Retorna al llamador
                         break;
 
-                    case "CMP":
+                    case "GREATER":
                         // Comparamos los dos operandos
                         System.out.println("CMP:");
                         if (isConstant(c3d.operando1)) {
@@ -79,7 +79,25 @@ public class AssemblyGenerator {
                             writer.write("cmpl " + c3d.operando2.offSet + "(%rbp), %eax\n");
                         }
 
-                        writer.write("jne" + ".L"+ c3d.label +"\n");
+                        writer.write("jg" + ".L"+ c3d.label +"\n");
+
+                        break;
+                    case "LESS":
+                        // Comparamos los dos operandos
+                        System.out.println("CMP:");
+                        if (isConstant(c3d.operando1)) {
+                            writer.write("movl $" + c3d.operando1.value + ", %eax\n");
+                        } else {
+                            writer.write("movl " + c3d.operando1.offSet + "(%rbp), %eax\n");
+                        }
+
+                        if (isConstant(c3d.operando2)) {
+                            writer.write("cmpl $" + c3d.operando2.value + ", %eax\n");
+                        } else {
+                            writer.write("cmpl " + c3d.operando2.offSet + "(%rbp), %eax\n");
+                        }
+
+                        writer.write("jl" + ".L"+ c3d.label +"\n");
 
                         break;
 

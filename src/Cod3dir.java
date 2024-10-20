@@ -43,7 +43,13 @@ public class Cod3dir {
         if (codigo.opType == "RET") {
             outputString = (codigo.opType + " # # " + r);
         }
-        if (codigo.opType == "CMP") {
+        if (codigo.opType == "GREATER") {
+            // Comparaciones
+            c1 = (codigo.operando1.etiqueta == 10) ? codigo.operando1.value.toString() : codigo.operando1.nombre;
+            c2 = (codigo.operando2.etiqueta == 10) ? codigo.operando2.value.toString() : codigo.operando2.nombre;
+            outputString = (codigo.opType + " " + c1 + " " + c2 + " " + r); // Comparación
+        }
+        if (codigo.opType == "LESS") {
             // Comparaciones
             c1 = (codigo.operando1.etiqueta == 10) ? codigo.operando1.value.toString() : codigo.operando1.nombre;
             c2 = (codigo.operando2.etiqueta == 10) ? codigo.operando2.value.toString() : codigo.operando2.nombre;
@@ -110,9 +116,12 @@ public class Cod3dir {
                 linea = new Cod3dir("RET", null, null, actual.izq.info, Cod3dir.labelCounter);
                 break;
             case Simbolo.GREATER:
+                Cod3dir.labelCounter++;
+                linea = new Cod3dir("GREATER", actual.izq.info, actual.der.info, actual.info, Cod3dir.labelCounter);
+                break;
             case Simbolo.LESS:
                 Cod3dir.labelCounter++;
-                linea = new Cod3dir("CMP", actual.izq.info, actual.der.info, actual.info, Cod3dir.labelCounter);
+                linea = new Cod3dir("LESS", actual.izq.info, actual.der.info, actual.info, Cod3dir.labelCounter);
                 break;
             case Simbolo.IF:
                 Cod3dir.labelCounter++;
