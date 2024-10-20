@@ -42,6 +42,7 @@ class SymbolTable {
         Map<String, Info> currentScope = scopes.peek();
         Info newInfo = currentScope.get(name);
         newInfo.value = value;
+        newInfo.etiqueta = Simbolo.ID;
         currentScope.replace(name, newInfo);
     }
 

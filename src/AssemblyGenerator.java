@@ -6,7 +6,7 @@ import java.util.List;
 public class AssemblyGenerator {
 
     public static void generateAssembly(List<Cod3dir> cod3dirList) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("assembly.txt"))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("assembly.s"))) {
             // Prologue de la función
             writer.write("main:\n");
             writer.write("pushq %rbp\n");
@@ -64,8 +64,9 @@ public class AssemblyGenerator {
                         writer.write("ret\n"); // Retorna al llamador
                         break;
 
-                    case "GREATER":
+                    case "CMP":
                         // Comparamos los dos operandos
+                        System.out.println("CMP:");
                         if (isConstant(c3d.operando1)) {
                             writer.write("movl $" + c3d.operando1.value + ", %eax\n");
                         } else {
@@ -78,34 +79,18 @@ public class AssemblyGenerator {
                             writer.write("cmpl " + c3d.operando2.offSet + "(%rbp), %eax\n");
                         }
 
-                        // Resultado del GREATER
-                        writer.write("setg %al\n"); // Si es mayor, se coloca 1 en %al
-                        writer.write("movzbl %al, %eax\n"); // Expande el valor de %al a %eax (para asegurarse que todo
-                                                            // %eax tiene el valor correcto)
-                        writer.write("movl %eax, " + c3d.result.offSet + "(%rbp)\n"); // Guarda el resultado
+                        writer.write("jne" + ".L"+ c3d.label +"\n");
+
                         break;
 
-                    case "LESS":
-                        // Comparamos los dos operandos
-                        if (isConstant(c3d.operando1)) {
-                            writer.write("movl $" + c3d.operando1.value + ", %eax\n");
-                        } else {
-                            writer.write("movl " + c3d.operando1.offSet + "(%rbp), %eax\n");
-                        }
-
-                        if (isConstant(c3d.operando2)) {
-                            writer.write("cmpl $" + c3d.operando2.value + ", %eax\n");
-                        } else {
-                            writer.write("cmpl " + c3d.operando2.offSet + "(%rbp), %eax\n");
-                        }
-
-                        // Resultado del LESS
-                        writer.write("setl %al\n"); // Si es menor, se coloca 1 en %al
-                        writer.write("movzbl %al, %eax\n"); // Expande el valor de %al a %eax
-                        writer.write("movl %eax, " + c3d.result.offSet + "(%rbp)\n"); // Guarda el resultado
+                    case "JMP":
+                        writer.write("jmp" +".L"+ c3d.label +"\n");
+                        writer.write(".L"+(c3d.label-1)+":\n");
                         break;
-
-                    // Otros casos como "/" y más operaciones
+                        // Otros casos como "/" y más operaciones
+                    case "labelstart":
+                        writer.write(".L"+(c3d.label-1)+":\n");
+                        break;
                     default:
                         writer.write("Unsupported operation: " + c3d.opType + "\n");
                         break;
