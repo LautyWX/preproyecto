@@ -12,12 +12,9 @@ parser code
     public Integer returnValue = 0;
     public Integer offSetCounter = -16;
     public Integer tmpNameCounter = 0;
-    public Integer labelCounter = 1;
     //listas
     public ArrayList<String> texto = new ArrayList<>();
     public SymbolTable symbolTable = new SymbolTable();  // Instanciar la tabla de símbolos
-    public ArrayList<String> codeOutput = new ArrayList<>();
-    public ArrayList<Cod3dir> cod3dirList = new ArrayList<>();
 
     @Override
     public void syntax_error(Symbol s){
@@ -81,7 +78,7 @@ BLOCK ::=
 
             parser.contador++;
             parser.texto.add("graphid:"+parser.contador+" # "+"declaracion y bloque");
-            Nodo tmp = new Nodo(new Info("L"+parser.labelCounter.toString(),-1,null,null),parser.contador);
+            Nodo tmp = new Nodo(new Info("bloque",-1,null,null),parser.contador);
 			tmp.addHijoIzq(d);
 			tmp.addHijoDer(b);
 
@@ -95,7 +92,7 @@ BLOCK ::=
             
             parser.contador++;
             parser.texto.add("graphid:"+parser.contador+" # "+"sentencia y bloque");
-            Nodo tmp = new Nodo(new Info("L"+parser.labelCounter.toString(),-1,null,null),parser.contador);
+            Nodo tmp = new Nodo(new Info("bloque",-1,null,null),parser.contador);
 			tmp.addHijoIzq(s);
 			tmp.addHijoDer(b);
 			RESULT = tmp;
@@ -161,11 +158,6 @@ STATEMENT ::=
             Nodo tmp = new Nodo(new Info("tmp"+parser.tmpNameCounter.toString(),Simbolo.RETURN,null,null),parser.contador);
 			tmp.addHijoIzq(e);
             parser.returnValue = e.info.value;
-            // segmento cod3dir
-            Cod3dir linea = new Cod3dir("RET",null,null,e.info);
-            parser.codeOutput.add(Cod3dir.genLine(linea));
-            parser.cod3dirList.add(linea);
-            //
 			RESULT = tmp;
         :}
     |   IF LPAREN COMP:e RPAREN LBRACE BLOCK:b RBRACE ELSE LBRACE BLOCK:b2 RBRACE {:
@@ -182,10 +174,12 @@ STATEMENT ::=
         :}
     | IF LPAREN COMP:e RPAREN LBRACE BLOCK:b RBRACE {:
         parser.contador++;
+        Nodo aux = new Nodo(new Info("\"IF-ELSE\"",Simbolo.IF,null,null),parser.contador);
         parser.texto.add("graphid:"+parser.contador+" # "+"if(exp) {block}");
         Nodo tmp = new Nodo(new Info("if",-1,null,null),parser.contador);
         tmp.addHijoIzq(e);
-        tmp.addHijoDer(b);  // Bloque del if
+        aux.addHijoIzq(b);
+        tmp.addHijoDer(aux);  // Bloque del if
 
         RESULT = tmp;
         :}
