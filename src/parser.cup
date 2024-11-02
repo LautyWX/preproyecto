@@ -141,9 +141,10 @@ STATEMENT ::=
 
                 parser.texto.add("graphid:"+parser.contador+" # variable = expresion");
                 Nodo tmp = new Nodo(new Info("\"=\"",Simbolo.EQUAL,null,null),parser.contador);
-                tmp.addHijoIzq(v);
+                Nodo variable_extraida = new Nodo(varInfo,v.graphId);
+                tmp.addHijoIzq(variable_extraida);
                 tmp.addHijoDer(e);
-
+                System.out.println(variable_extraida.nombre+" tiene el offset de : "+variable_extraida.offSet);
                 //codigo de interprete
                 parser.symbolTable.changeSymbolValue(v.info.nombre,e.info.value);
                 RESULT = tmp;
@@ -205,6 +206,7 @@ EXP ::=
                 parser.texto.add("graphid:"+parser.contador+" # "+"exp + exp");
                 Info tmpInfo = new Info("tmp"+parser.tmpNameCounter.toString(),Simbolo.PLUS,resultadoSuma,"entero",parser.offSetCounter);
                 parser.offSetCounter = parser.offSetCounter - 16;
+                System.out.println(tmpInfo.nombre+" : "+tmpInfo.offSet);
                 Nodo tmp = new Nodo(tmpInfo,parser.contador);
                 tmp.addHijoIzq(a);
                 tmp.addHijoDer(b);
@@ -222,6 +224,7 @@ EXP ::=
                 parser.texto.add("graphid:"+parser.contador+" # "+"exp * exp");
                 Info tmpInfo = new Info("tmp"+parser.tmpNameCounter.toString(),Simbolo.STAR,resultadoProducto,"entero",parser.offSetCounter);
                 parser.offSetCounter = parser.offSetCounter - 16;
+                System.out.println(tmpInfo.nombre+" : "+tmpInfo.offSet);
                 Nodo tmp = new Nodo(tmpInfo,parser.contador);
                 tmp.addHijoIzq(a);
                 tmp.addHijoDer(b);
@@ -242,6 +245,7 @@ EXP ::=
             if (varInfo == null) {
                 System.out.println("Error: Variable '" + varName + "' no ha sido declarada.");
             }else{
+                System.out.println(varInfo.nombre+" : "+varInfo.offSet);
                 Nodo tmp = new Nodo(varInfo,parser.contador);
                 RESULT = tmp;
             }
@@ -289,8 +293,8 @@ VAR ::=
             // Buscar la variable en la tabla de símbolos
             //String varName = id.toString();
             //Info varInfo = parser.symbolTable.lookup(varName);
-            
-            Nodo tmp = new Nodo(new Info(id.toString(),Simbolo.ID,null,"variable",parser.offSetCounter),parser.contador);
+            Info tmpInfo = new Info(id.toString(),Simbolo.ID,null,"variable",parser.offSetCounter);
+            Nodo tmp = new Nodo(tmpInfo,parser.contador);
             parser.offSetCounter = parser.offSetCounter - 16;
             RESULT = tmp;
 

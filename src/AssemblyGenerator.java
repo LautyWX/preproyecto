@@ -103,11 +103,13 @@ public class AssemblyGenerator {
 
                     case "JMP":
                         writer.write("jmp" +".L"+ c3d.label +"\n");
-                        writer.write(".L"+(c3d.label-1)+":\n");
                         break;
                         // Otros casos como "/" y más operaciones
-                    case "labelstart":
-                        writer.write(".L"+(c3d.label-1)+":\n");
+                    case "elseStart":
+                        writer.write(".L"+c3d.label+":\n");
+                        break;
+                    case "ifEnd":
+                        writer.write(".L"+c3d.label+":\n");
                         break;
                     default:
                         writer.write("Unsupported operation: " + c3d.opType + "\n");

@@ -68,24 +68,37 @@ public class Cod3dir {
         ArrayList<Cod3dir> lista = new ArrayList<>();
         
 
-        if (actual.izq != null) {
-            lista.addAll(Cod3dir.treeToC3d(actual.izq));
+        if(actual.info.etiqueta!=Simbolo.IF){
+            if (actual.izq != null) {
+                lista.addAll(Cod3dir.treeToC3d(actual.izq));
+            }
+    
+            if (actual.der != null) {
+                lista.addAll(Cod3dir.treeToC3d(actual.der));
+            }
+    
+            if(Cod3dir.canBeGenerated(actual.info.etiqueta)){
+                lista.add(Cod3dir.genCode(actual));
+            }
+        } else {
+            Integer label_else = Cod3dir.labelCounter;
+            labelCounter++;
+            Integer label_out = Cod3dir.labelCounter;
+            if (actual.izq != null) {
+                lista.addAll(Cod3dir.treeToC3d(actual.izq));
+            }
+            lista.add(new Cod3dir("JMP",label_out));
+            lista.add(new Cod3dir("elseStart", label_else));
+            if (actual.der != null) {
+                lista.addAll(Cod3dir.treeToC3d(actual.der));
+            }
+            lista.add(new Cod3dir("ifEnd", label_out));
+
         }
 
-        if(actual.info.etiqueta == Simbolo.IF){
-            lista.add(Cod3dir.genCode(actual));
-            System.out.println("IF detectado");
-        }
 
-        if (actual.der != null) {
-            lista.addAll(Cod3dir.treeToC3d(actual.der));
-        }
-        if(actual.info.etiqueta == Simbolo.IF){
-            lista.add(new Cod3dir("labelstart", labelCounter+1));
-        }
-        if(Cod3dir.canBeGenerated(actual.info.etiqueta)){
-            lista.add(Cod3dir.genCode(actual));
-        }
+
+
         return lista;
     }
 
