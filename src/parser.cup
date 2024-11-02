@@ -5,15 +5,16 @@ import java.util.List;
 
 parser code
 {:
+    //objetos
     public Nodo padre; //o nodo raiz
-    public ArrayList<String> texto = new ArrayList<>();
+    //contadores y valores numericos
     public int contador = 0;
-    public SymbolTable symbolTable = new SymbolTable();  // Instanciar la tabla de símbolos
     public Integer returnValue = 0;
-    public ArrayList<String> codeOutput = new ArrayList<>();
     public Integer offSetCounter = -16;
     public Integer tmpNameCounter = 0;
-    public ArrayList<Cod3dir> cod3dirList = new ArrayList<>();
+    //listas
+    public ArrayList<String> texto = new ArrayList<>();
+    public SymbolTable symbolTable = new SymbolTable();  // Instanciar la tabla de símbolos
 
     @Override
     public void syntax_error(Symbol s){
@@ -115,7 +116,6 @@ DECL ::=
                 System.out.println("Error: Variable '" + varName + "' ya declarada.");
             } else {
                 // Agregar la variable a la tabla de símbolos
-                System.out.println("info.nombre: "+v.info.nombre);
                 parser.symbolTable.addSymbol(varName, parser.contador, null, t.info.tipo, v.info.offSet);
                 Nodo tmp = new Nodo(new Info("declaracion",-1,0,null),parser.contador); //test, todos los valores seran inicializados en 0
                 tmp.addHijoIzq(t);
@@ -141,16 +141,14 @@ STATEMENT ::=
 
                 parser.texto.add("graphid:"+parser.contador+" # variable = expresion");
                 Nodo tmp = new Nodo(new Info("\"=\"",Simbolo.EQUAL,null,null),parser.contador);
-                tmp.addHijoIzq(v);
+                Nodo variable_extraida = new Nodo(varInfo,v.graphId);
+                tmp.addHijoIzq(variable_extraida);
                 tmp.addHijoDer(e);
-
+                System.out.println(variable_extraida.nombre+" tiene el offset de : "+variable_extraida.offSet);
                 //codigo de interprete
                 parser.symbolTable.changeSymbolValue(v.info.nombre,e.info.value);
-
-                //segmento cod3dir
-                parser.codeOutput.add(Cod3dir.genLine("ASSGN",e.info,null,v.info));
-                parser.cod3dirList.add(new Cod3dir("ASSGN",e.info,null,v.info));
                 RESULT = tmp;
+
             }
 
         :}
@@ -161,34 +159,29 @@ STATEMENT ::=
             Nodo tmp = new Nodo(new Info("tmp"+parser.tmpNameCounter.toString(),Simbolo.RETURN,null,null),parser.contador);
 			tmp.addHijoIzq(e);
             parser.returnValue = e.info.value;
-            // segmento cod3dir
-            parser.codeOutput.add(Cod3dir.genLine("RET",null,null,e.info));
-            parser.cod3dirList.add(new Cod3dir("RET",null,null,e.info));
-            //
-			RESULT = tmp;
-        :}
-    |   RETURN SEMICOLON {:
-            parser.contador++;
-            parser.texto.add("graphid:"+parser.contador+" # "+"return;");
-            Nodo tmp = new Nodo(new Info("return",Simbolo.RETURN,null,null),parser.contador);
-            
 			RESULT = tmp;
         :}
     |   IF LPAREN COMP:e RPAREN LBRACE BLOCK:b RBRACE ELSE LBRACE BLOCK:b2 RBRACE {:
         parser.contador++;
         parser.texto.add("graphid:"+parser.contador+" # "+"if(exp) {block} else {block}");
-        Nodo tmp = new Nodo(new Info("if-else",-1,null,null),parser.contador);
+        Nodo tmp = new Nodo(new Info("\"Sentencia IF\"",-1,null,null),parser.contador);
+        parser.contador++;
+        Nodo aux = new Nodo(new Info("\"IF-ELSE\"",Simbolo.IF,null,null),parser.contador);
         tmp.addHijoIzq(e);
-        tmp.addHijoIzq(b);  // Bloque del if
-        tmp.addHijoDer(b2); // Bloque del else
+        aux.addHijoIzq(b);  // Bloque del if
+        aux.addHijoDer(b2); // Bloque del else
+        tmp.addHijoDer(aux);
         RESULT = tmp;
         :}
     | IF LPAREN COMP:e RPAREN LBRACE BLOCK:b RBRACE {:
         parser.contador++;
+        Nodo aux = new Nodo(new Info("\"IF-ELSE\"",Simbolo.IF,null,null),parser.contador);
         parser.texto.add("graphid:"+parser.contador+" # "+"if(exp) {block}");
         Nodo tmp = new Nodo(new Info("if",-1,null,null),parser.contador);
         tmp.addHijoIzq(e);
-        tmp.addHijoDer(b);  // Bloque del if
+        aux.addHijoIzq(b);
+        tmp.addHijoDer(aux);  // Bloque del if
+
         RESULT = tmp;
         :}
     |   WHILE LPAREN EXP:e RPAREN LBRACE BLOCK:b RBRACE {:
@@ -213,15 +206,11 @@ EXP ::=
                 parser.texto.add("graphid:"+parser.contador+" # "+"exp + exp");
                 Info tmpInfo = new Info("tmp"+parser.tmpNameCounter.toString(),Simbolo.PLUS,resultadoSuma,"entero",parser.offSetCounter);
                 parser.offSetCounter = parser.offSetCounter - 16;
+                System.out.println(tmpInfo.nombre+" : "+tmpInfo.offSet);
                 Nodo tmp = new Nodo(tmpInfo,parser.contador);
                 tmp.addHijoIzq(a);
                 tmp.addHijoDer(b);
                 RESULT = tmp;
-
-                //segmento cod3dir...
-                parser.codeOutput.add(Cod3dir.genLine("SUM",a.info,b.info,tmp.info));
-                parser.cod3dirList.add(new Cod3dir("SUM",a.info,b.info,tmp.info));
-                //
             }
         :}
     |   EXP:a STAR EXP:b {:
@@ -235,22 +224,14 @@ EXP ::=
                 parser.texto.add("graphid:"+parser.contador+" # "+"exp * exp");
                 Info tmpInfo = new Info("tmp"+parser.tmpNameCounter.toString(),Simbolo.STAR,resultadoProducto,"entero",parser.offSetCounter);
                 parser.offSetCounter = parser.offSetCounter - 16;
+                System.out.println(tmpInfo.nombre+" : "+tmpInfo.offSet);
                 Nodo tmp = new Nodo(tmpInfo,parser.contador);
                 tmp.addHijoIzq(a);
                 tmp.addHijoDer(b);
                 RESULT = tmp;
-
-                //segmento cod3dir...
-                parser.codeOutput.add(Cod3dir.genLine("MUL",a.info,b.info,tmp.info));
-                parser.cod3dirList.add(new Cod3dir("MUL",a.info,b.info,tmp.info));
-                //
             }
         :}
     |   LPAREN EXP:e RPAREN {:
-            /*parser.contador++;
-            parser.texto.add("graphid:"+parser.contador+" # "+"(expresion)");
-			Nodo tmp = new Nodo(new Info("expresion",null,e.info.value,null),parser.contador);
-			tmp.addHijoIzq(e);*/
             RESULT = e;
         :}
     |   ID:id {:
@@ -264,6 +245,7 @@ EXP ::=
             if (varInfo == null) {
                 System.out.println("Error: Variable '" + varName + "' no ha sido declarada.");
             }else{
+                System.out.println(varInfo.nombre+" : "+varInfo.offSet);
                 Nodo tmp = new Nodo(varInfo,parser.contador);
                 RESULT = tmp;
             }
@@ -311,8 +293,8 @@ VAR ::=
             // Buscar la variable en la tabla de símbolos
             //String varName = id.toString();
             //Info varInfo = parser.symbolTable.lookup(varName);
-            
-            Nodo tmp = new Nodo(new Info(id.toString(),Simbolo.ID,null,"variable",parser.offSetCounter),parser.contador);
+            Info tmpInfo = new Info(id.toString(),Simbolo.ID,null,"variable",parser.offSetCounter);
+            Nodo tmp = new Nodo(tmpInfo,parser.contador);
             parser.offSetCounter = parser.offSetCounter - 16;
             RESULT = tmp;
 
@@ -320,7 +302,7 @@ VAR ::=
 ;
 
 COMP ::=
-        EXP LESS EXP {:
+        EXP:a LESS EXP:b {:
             parser.contador++;
             parser.tmpNameCounter++;
             // Verificar que ambos operandos son del mismo tipo y compatibles con desigualdad
@@ -332,19 +314,14 @@ COMP ::=
                 parser.texto.add("graphid:"+parser.contador+" # "+"exp < exp");
 
                 // Crear un nuevo nodo con tipo "booleano"
-                Info tmpInfo = new Info("tmp" + parser.tmpNameCounter.toString(), Simbolo.LESS, resultadoDesigualdad ? 1 : 0, "booleano", parser.offSetCounter);
-                parser.offSetCounter -= 16;
+                Info tmpInfo = new Info("\"<\"", Simbolo.LESS, resultadoDesigualdad ? 1 : 0, "booleano", null);
                 Nodo tmp = new Nodo(tmpInfo, parser.contador);
                 tmp.addHijoIzq(a);
                 tmp.addHijoDer(b);
                 RESULT = tmp;
-
-                // Código de tres direcciones (cod3dir) para la operación LESS
-                parser.codeOutput.add(Cod3dir.genLine("LESS", a.info, b.info, tmp.info));
-                parser.cod3dirList.add(new Cod3dir("LESS", a.info, b.info, tmp.info));
             }
         :}
-    |   EXP GREATER EXP {:
+    |   EXP:a GREATER EXP:b {:
             parser.contador++;
             parser.tmpNameCounter++;
             // Verificar que ambos operandos son del mismo tipo y compatibles con desigualdad
@@ -356,16 +333,11 @@ COMP ::=
                 parser.texto.add("graphid:"+parser.contador+" # "+"exp > exp");
 
                 // Crear un nuevo nodo con tipo "booleano"
-                Info tmpInfo = new Info("tmp" + parser.tmpNameCounter.toString(), Simbolo.GREATER, resultadoDesigualdad ? 1 : 0, "booleano", parser.offSetCounter);
-                parser.offSetCounter -= 16;
+                Info tmpInfo = new Info("\">\"", Simbolo.GREATER, resultadoDesigualdad ? 1 : 0, "booleano", null);
                 Nodo tmp = new Nodo(tmpInfo, parser.contador);
                 tmp.addHijoIzq(a);
                 tmp.addHijoDer(b);
                 RESULT = tmp;
-
-                // Código de tres direcciones (cod3dir) para la operación GREATER
-                parser.codeOutput.add(Cod3dir.genLine("GREATER", a.info, b.info, tmp.info));
-                parser.cod3dirList.add(new Cod3dir("GREATER", a.info, b.info, tmp.info));
             }
         :}
 ;

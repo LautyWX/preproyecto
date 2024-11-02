@@ -45,7 +45,17 @@ public class Ventana extends javax.swing.JFrame {
 
         jText1.setColumns(20);
         jText1.setRows(5);
-        jText1.setText("int main(){int x;int y;y = 25 * 3 + (30*2);x = 50+y;return x;}");
+        jText1.setText("int main(){\n" +
+                "int x;\n" +
+                "int y;\n" +
+                "x = 3 + 1;\n" +
+                "if(x > 5){\n" +
+                "    x = 30;\n" +
+                "} else {\n" +
+                "    y = 150;\n" +
+                "}\n" +
+                "return x;\n" +
+                "}");
         jScrollPane2.setViewportView(jText1);
 
         jButton2.setText("Imagen");
@@ -114,13 +124,17 @@ public class Ventana extends javax.swing.JFrame {
             lexer scanner = new lexer(reader);
             Parser parser = new Parser(scanner);
             parser.parse();
+            ArrayList<Cod3dir> lista = Cod3dir.treeToC3d(parser.padre);
+            String temp = "";
 
             // Convertir el ArrayList en un solo String separado por saltos de línea
             StringBuilder sb = new StringBuilder();
-            for (String str : parser.codeOutput) {
-                sb.append(str).append("\n");
+            for (Cod3dir linea : lista) { 
+                temp = Cod3dir.genLine(linea);
+                sb.append(temp).append("\n");
             }
-            AssemblyGenerator.generateAssembly(parser.cod3dirList);
+            
+            AssemblyGenerator.generateAssembly(lista);
             jText2.setText(sb.toString());
 
             System.out.println("el programa retorna: " + parser.returnValue);
